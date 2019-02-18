@@ -1,0 +1,32 @@
+<h1 class="mt-4">Dashboard</h1>
+<p class="lead mb-3" id="welcomeP" data-name="<%= user.name %>">Welcome <%= user.name %></p>
+<div id="chatdiv" >
+<% for(post of posts){ %>
+  <p><%= post %></p>
+<%}%>
+</div>
+<br>
+<input type="text" id="chatInput">
+<button id="sendhello">Send Hello</button>
+<br>
+<button id="room1">room1</button> <button id="room2">room2</button>
+
+<a href="/users/logout" class="btn btn-secondary">Logout</a>
+<script>
+const sendhello = document.querySelector('#sendhello')
+const welcomeP = document.querySelector('#welcomeP').getAttribute('data-name')
+const chatInput = document.querySelector('#chatInput')
+const chatDiv = document.getElementById('chatdiv')
+
+sendhello.addEventListener('click',e=>{
+  console.log(chatInput.value)
+    const content = welcomeP + " says " + chatInput.value
+    socket.emit('hello',content)
+  })
+let socket = io.connect('/')
+
+    socket.on('hello', data => chatDiv.innerHTML +=`<p> ${data} </p>`)
+
+    socket.on('chat', data => chatDiv.innerHTML +=`<p> ${data} </p>`)
+</script>
+</script>
