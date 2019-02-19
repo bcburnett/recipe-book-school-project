@@ -177,6 +177,7 @@ io.on("connection", socket => {
       post.postLink = data.link;
       post.postContent = data.content;
       post.postImage = data.image;
+      post.thumbnail =data.thumbnail;
       const mydata = new Post(post);
       mydata.save().then((res, err) => console.log(err, res));
     });
@@ -186,6 +187,7 @@ io.on("connection", socket => {
     Post.find()
       .sort({ _id: -1 })
       .limit(10)
+      .sort({_id : 1})
       .then((res, error) => {
         res.map(e => {
           console.log(e)
