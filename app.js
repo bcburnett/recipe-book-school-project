@@ -144,4 +144,16 @@ io.on('connection',( socket ) => {
       })
   })
 
+  socket.on('newPost', data => {
+    console.log(data)
+    app.render('post',{data},(err, html)=>{
+      if(err){
+        value=err
+        socket.emit('newPost',err)
+        return
+      }
+      socket.emit('newPost',html)
+    })
+})
+
 })

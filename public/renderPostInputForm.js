@@ -7,7 +7,8 @@ export default function doForm() {
     postContent = document.querySelector("#postContent"),
     postSubmit = document.querySelector("#postSubmit"),
     postDisplay = document.querySelector("#postDisplay"),
-    postFormDiv = document.querySelector("#postFormDiv")
+    postFormDiv = document.querySelector("#postFormDiv"),
+
 
   postImage.onchange = e => readURL(postImage);
 
@@ -21,6 +22,7 @@ export default function doForm() {
     }
 
     console.log(responseObject)
+      Socket.emit("newPost",responseObject)
     postFormDiv.innerHTML = ''
 
   }

@@ -1,5 +1,5 @@
 import doForm from '/renderPostInputForm.js'
-export default function dashboard(){
+
 let socket = io.connect('/')
 const sendhello = document.querySelector('#sendhello')
 const welcomeP = document.querySelector('#welcomeP').getAttribute('data-name')
@@ -25,4 +25,4 @@ sendhello.addEventListener('click',e=>{
     socket.on('sendPostForm', data =>{
       postFormDiv.innerHTML = data
       doForm()
-    })}
+    })
