@@ -3,7 +3,15 @@ const router = express.Router();
 const { ensureAuthenticated } = require('../config/auth');
 const Chat = require('../models/chatstate')
 // Welcome Page
-router.get('/', (req, res) => res.render('welcome'));
+router.get('/', (req, res) =>{
+  if (req.user) {
+    res.redirect('/dashboard') // logged in
+} else {
+  res.render('welcome')   // not logged in
+}
+
+
+});
 
 // Dashboard
 router.get('/dashboard', ensureAuthenticated, (req, res) =>{
