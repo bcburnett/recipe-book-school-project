@@ -27,6 +27,10 @@ postImage:{
   type:String,
   required: false
 },
+thumbnail:{
+  type:String,
+  required: false
+},
 postContent:{
   type:String,
   required: false

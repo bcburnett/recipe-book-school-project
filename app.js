@@ -140,7 +140,7 @@ io.on("connection", socket => {
   });
 
   socket.on("getPostForm", data => {
-    app.render("postInputForm", (err, html) => {
+    app.render("postInputForm",{data:{}} ,(err, html) => {
       if (err) {
         value = err;
         socket.emit("sendPostForm", err);
