@@ -154,6 +154,9 @@ io.on('connection',( socket ) => {
       }
       socket.emit('newPost',html)
       socket.broadcast.emit('newPost',html)
+      const data = socket.handshake.session.userinfo.name +" has Posted an article"
+      socket.emit('hello',data)
+      socket.broadcast.emit('hello',data)
     })
 })
 

@@ -3,10 +3,6 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
 
-id:{
-  type:String,
-  required: false
-},
 post_id:{
   type:String,
   required: false

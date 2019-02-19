@@ -15,7 +15,7 @@
 <div id="postsDiv"></div>
 
 <a href="/users/logout" class="btn btn-secondary">Logout</a>
-<script type="module">
+<script>
 
 let socket = io.connect('/')
 const sendhello = document.querySelector('#sendhello')
@@ -27,7 +27,93 @@ const postcreate = document.getElementById('postCreate')
 const postDiv = document.getElementById('postsDiv')
 
 function doForm() {
-  tinymce.init({ selector: "#postContent" });
+
+
+    $.FroalaEditor.DefineIcon('insertH1', {NAME: 'h1'});
+    $.FroalaEditor.RegisterCommand('insertH1', {
+      title: 'H1',
+      focus: true,
+      undo: true,
+      refreshAfterCallback: true,
+      callback: function () {
+        this.html.insert('<h1></h1>');
+        this.undo.saveStep();
+      }
+    });
+
+  $.FroalaEditor.DefineIcon('insertH2', {NAME: 'h2'});
+    $.FroalaEditor.RegisterCommand('insertH2', {
+      title: 'H2',
+      focus: true,
+      undo: true,
+      refreshAfterCallback: true,
+      callback: function () {
+        this.html.insert('<h2></h2>');
+        this.undo.saveStep();
+      }
+    });
+
+        $.FroalaEditor.DefineIcon('insertH3', {NAME: 'h3'});
+    $.FroalaEditor.RegisterCommand('insertH3', {
+      title: 'H3',
+      focus: true,
+      undo: true,
+      refreshAfterCallback: true,
+      callback: function () {
+        this.html.insert('<h3></h3>');
+        this.undo.saveStep();
+      }
+    });
+
+    $.FroalaEditor.DefineIcon('insertlist', {NAME: 'list-ul'});
+    $.FroalaEditor.RegisterCommand('insertlist', {
+      title: 'UL',
+      focus: true,
+      undo: true,
+      refreshAfterCallback: true,
+      callback: function () {
+        this.html.insert('<ul></ul>');
+        this.undo.saveStep();
+      }
+    });
+
+$.FroalaEditor.DefineIcon('insertlistol', {NAME: 'list-ol'});
+$.FroalaEditor.RegisterCommand('insertlistol', {
+  title: 'OL',
+  focus: true,
+  undo: true,
+  refreshAfterCallback: true,
+  callback: function () {
+    this.html.insert('<ol></ol>');
+    this.undo.saveStep();
+  }
+});
+
+$.FroalaEditor.DefineIcon('insertP', {NAME: 'paragraph'});
+$.FroalaEditor.RegisterCommand('insertP', {
+  title: 'P',
+  focus: true,
+  undo: true,
+  refreshAfterCallback: true,
+  callback: function () {
+    this.html.insert('<p></p>');
+    this.undo.saveStep();
+  }
+});
+    if (!$('div#froala-editor').data('froala.editor')) {
+      $('div#froala-editor').froalaEditor({
+        colors: [
+'#15E67F', '#E3DE8C', '#D8A076', '#D83762', '#76B6D8', 'REMOVE',
+'#1C7A90', '#249CB8', '#4ABED9', '#FBD75B', '#FBE571', '#FFFFFF'
+],
+toolbarButtons: [
+'undo', 'redo' , '|', 'bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript',
+ 'outdent', 'indent', 'clearFormatting', 'insertTable', 'html','insertlistol','insertlist','insertH1','insertH2','insertH3','insertP'
+
+      ],
+      iconsTemplate: 'font_awesome_5'
+      });
+    }
   const postText = document.querySelector("#postText"),
     postLink = document.querySelector("#postLink"),
     postTitle = document.querySelector("#postTitle"),
@@ -37,6 +123,7 @@ function doForm() {
     postDisplay = document.querySelector("#postDisplay"),
     postFormDiv = document.querySelector("#postFormDiv")
   postImage.onchange = e => readURL(postImage);
+
   postSubmit.onclick = (e)=>{
 const elem = document.createElement('canvas');
 elem.width = postDisplay.clientWidth;
@@ -49,10 +136,14 @@ const data = ctx.canvas.toDataURL();
       "link":postLink.value,
       "title": postTitle.value,
       "image":data,
-      "content":tinymce.activeEditor.getContent()
+      "content":$('div#froala-editor').froalaEditor('html.get')
     }
     console.log(responseObject)
       socket.emit("newPost",responseObject)
+      if ($('div#froala-editor').data('froala.editor')) {
+      $('div#froala-editor').froalaEditor('destroy');
+    }
+
     postFormDiv.innerHTML = ''
   }
 
@@ -84,7 +175,10 @@ sendhello.addEventListener('click',e=>{
 
     socket.on('sendPostForm', data =>{
       postFormDiv.innerHTML = data
-      doForm()
+      setTimeout(() => {
+        doForm()
+      }, 0);
+
     })
 
     socket.on('newPost', data =>{
@@ -92,4 +186,5 @@ sendhello.addEventListener('click',e=>{
       postDiv.innerHTML += data
     })
 </script>
+
 
