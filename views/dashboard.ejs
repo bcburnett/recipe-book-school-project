@@ -36,11 +36,17 @@ function doForm() {
     postFormDiv = document.querySelector("#postFormDiv")
   postImage.onchange = e => readURL(postImage);
   postSubmit.onclick = (e)=>{
+const elem = document.createElement('canvas');
+elem.width = postDisplay.clientWidth;
+elem.height = postDisplay.clientHeight;
+const ctx = elem.getContext('2d')
+ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth, postDisplay.clientHeight);
+const data = ctx.canvas.toDataURL();
     const responseObject={
       "text":postText.value,
       "link":postLink.value,
       "title": postTitle.value,
-      "image":postDisplay.getAttribute('src'),
+      "image":data,
       "content":tinymce.activeEditor.getContent()
     }
     console.log(responseObject)
