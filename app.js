@@ -140,7 +140,7 @@ io.on('connection',( socket ) => {
           socket.emit('sendPostForm',err)
           return
         }
-        socket.emit('sendPostForm',html)
+         socket.emit('sendPostForm',html)
       })
   })
 
@@ -153,6 +153,7 @@ io.on('connection',( socket ) => {
         return
       }
       socket.emit('newPost',html)
+      socket.broadcast.emit('newPost',html)
     })
 })
 

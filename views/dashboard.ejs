@@ -12,6 +12,7 @@
 <button id="postCreate">create post</button> <button id="room2">room2</button>
 
 <div id="postFormDiv"></div>
+<div id="postsDiv"></div>
 
 <a href="/users/logout" class="btn btn-secondary">Logout</a>
 <script type="module">
@@ -23,6 +24,7 @@ const chatInput = document.querySelector('#chatInput')
 const chatDiv = document.getElementById('chatdiv')
 const postFormDiv = document.getElementById('postFormDiv')
 const postcreate = document.getElementById('postCreate')
+const postDiv = document.getElementById('postsDiv')
 
 function doForm() {
   tinymce.init({ selector: "#postContent" });
@@ -87,7 +89,7 @@ sendhello.addEventListener('click',e=>{
 
     socket.on('newPost', data =>{
       console.log(data)
-      postFormDiv.innerHTML = data
+      postDiv.innerHTML += data
     })
 </script>
 
