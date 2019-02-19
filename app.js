@@ -7,10 +7,12 @@ const mysession = require('express-session')
 var MongoDBStore = require('connect-mongodb-session')(require('express-session'));
 const socket = require('socket.io')
 var http = require('http');
+var uuidv1 = require('uuid/v1');
 const app = express();
 
 const User = require('./models/user');
 const Chat = require('./models/chatstate');
+const Post = require('./models/posts/postModel')
 const lastFiveMessages =[]
 
 
@@ -145,7 +147,7 @@ io.on('connection',( socket ) => {
   })
 
   socket.on('newPost', data => {
-    console.log(data)
+
     app.render('post',{data},(err, html)=>{
       if(err){
         value=err
@@ -154,9 +156,27 @@ io.on('connection',( socket ) => {
       }
       socket.emit('newPost',html)
       socket.broadcast.emit('newPost',html)
-      const data = socket.handshake.session.userinfo.name +" has Posted an article"
-      socket.emit('hello',data)
-      socket.broadcast.emit('hello',data)
+      const messg = socket.handshake.session.userinfo.name +" has Posted an article"
+      mongoose
+  .connect('mongodb://localhost:27017/mysocialmedia',
+    { useNewUrlParser: true }
+  )
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
+      socket.emit('hello',messg)
+      socket.broadcast.emit('hello',messg)
+      const post = {}
+      post.user_id = socket.handshake.session.passport.user
+      post.post_id = uuidv1()
+      post.postText = data.text
+      post.postTitle = data.title
+      post.postLink = data.link
+      post.postContent = data.content
+      post.postImage = data.image
+      const mydata = new Post(post)
+      mydata.save().then((res,err)=>console.log(err,res))
+
+
     })
 })
 
