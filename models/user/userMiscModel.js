@@ -2,31 +2,7 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
 
-  status: {
-    type: String,
-    required: false,
-    error: e => {}
-  },
-  active: {
-    type: String,
-    required: false,
-    error: e => {}
-  },
-  admin: {
-    type: String,
-    required: false,
-    error: e => {}
-  },
-  type: {
-    type: String,
-    required: false,
-    error: e => {}
-  },
-  registered: {
-    type: String,
-    required: false,
-    error: e => {}
-  },
+
   start_up: {
     type: String,
     required: false,

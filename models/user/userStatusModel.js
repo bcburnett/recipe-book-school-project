@@ -1,3 +1,8 @@
+
+const mongoose = require("mongoose");
+
+const UserSchema = new mongoose.Schema({
+
 status: {
   type: String,
   required: false,
@@ -43,3 +48,10 @@ ip_address: {
   required: false,
   error: e => {}
 },
+registrationpipelinestep:{
+  type:string
+}
+});
+const User = mongoose.model("User", UserSchema);
+
+module.exports = User;

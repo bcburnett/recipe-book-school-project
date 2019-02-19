@@ -71,6 +71,7 @@ app.use(function(req, res, next) {
 });
 
 // Routes
+app.use(express.static('public'))
 app.use('/', require('./routes/index.js'));
 app.use('/users', require('./routes/users.js'));
 
@@ -97,23 +98,21 @@ Chat.findOne({room:'room1'}).then((res)=>{
   chat.save()
 })
 
-Chat.findOne({room:'room2'}).then((res)=>{
-  res.lastFiveMessages=[]
-  res.save()
-}).catch(e=>{
-  chat = new Chat()
-  chat.room = 'room2'
-  chat.lastFiveMessages=[]
-  chat.save()
-})
+
 io.on('connection',( socket ) => {
+  console.info(`Client connected [id=${socket.id}]`);
+
+    // when socket disconnects, remove it from the list:
+    socket.on("disconnect", () => {
+        console.info(`Client gone [id=${socket.id}]`);
+    });
   try{
   id=socket.handshake.session.passport.user
   console.log(id)
     User.findById(id).then(res=>{
     socket.handshake.session.userinfo = res
     socket.handshake.session.save()
-    console.log(res)
+    socket.emit('hello','session updated')
   }).catch(e=>console.log(e))
   }catch(e){console.log('NO ID')}
 
@@ -128,11 +127,21 @@ io.on('connection',( socket ) => {
       if(lastFiveMessages.length >5){
         lastFiveMessages.splice(0,1)
       }
-
+      // save the message array
       Chat.findOne({room:'room1'}).then((res,err)=>{
           res.lastFiveMessages = lastFiveMessages
            res.save().then((res,err)=>console.log(err,res))})
     })
+
+    socket.on('getPostForm', data => {
+      app.render('postInputForm',(err, html)=>{
+        if(err){
+          value=err
+          socket.emit('sendPostForm',err)
+          return
+        }
+        socket.emit('sendPostForm',html)
+      })
   })
 
-
+})

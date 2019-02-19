@@ -158,3 +158,8 @@ const UserSchema = new mongoose.Schema({
     required: false,
     error: e => {}
   },
+});
+const User = mongoose.model("User", UserSchema);
+
+module.exports = User;
+

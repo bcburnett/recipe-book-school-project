@@ -10,14 +10,20 @@ router.get('/', (req, res) => res.render('welcome'));
 router.get('/dashboard', ensureAuthenticated, (req, res) =>{
 
   Chat.findOne({room:'room1'}).then((result,err)=> {
-    console.log(result, 'five posts')
+    if(err) result.lastFiveMessages = []
  res.render('dashboard', {
     user: req.user,
     posts: result.lastFiveMessages
   })
 });
+console.log(req)
   req.app.io.emit('hello',req.user.name + ' Has Joined' )
 
+})
+
+router.get('/js/?file',(req,res)=>{
+  console.log(req)
+  // res.send('../js/'+req.params.file)
 })
 
 module.exports = router;
