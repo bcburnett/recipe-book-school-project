@@ -12,5 +12,7 @@
 <img src="<%= data.thumbnail%>">
 <%- data.postContent%>
 <p><%= data.postText%></p>
+<button id="edit<%= data.post_id%>" data-postid = "<%= data.post_id%>">Edit</button>
+<button id="dele<%= data.post_id%>" data-postid="<%= data.post_id%>">Delete</button>
 
 <% } %>
