@@ -1,3 +1,4 @@
+import doForm from '/renderPostInputForm.js'
 export default function dashboard(){
 let socket = io.connect('/')
 const sendhello = document.querySelector('#sendhello')

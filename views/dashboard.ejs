@@ -15,8 +15,11 @@
 
 <a href="/users/logout" class="btn btn-secondary">Logout</a>
 <script type="module">
-import doForm from '/renderPostInputForm.js'
+
 import dashboard from '/dashboard.js'
-dashboard()
+setTimeout(() => {
+  dashboard()
+}, 1000);
+
 </script>
 
