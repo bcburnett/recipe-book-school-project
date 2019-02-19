@@ -9,7 +9,7 @@
 <input type="text" id="chatInput">
 <button id="sendhello">Send Hello</button>
 <br>
-<button id="postCreate">create post</button> <button id="room2">room2</button>
+<button id="postCreate">create post</button> <button id="cancel">cancel</button>
 
 <div id="postFormDiv"></div>
 <div id="postsDiv"></div>
@@ -25,7 +25,7 @@ const chatDiv = document.getElementById('chatdiv')
 const postFormDiv = document.getElementById('postFormDiv')
 const postcreate = document.getElementById('postCreate')
 const postDiv = document.getElementById('postsDiv')
-
+const cancel = document.getElementById('cancel').onclick = e=>postFormDiv.innerHTML=''
 function doForm() {
 
 
