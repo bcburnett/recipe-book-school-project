@@ -125,17 +125,26 @@ toolbarButtons: [
   postImage.onchange = e => readURL(postImage);
 
   postSubmit.onclick = (e)=>{
-const elem = document.createElement('canvas');
+let elem = document.createElement('canvas');
 elem.width = postDisplay.clientWidth;
 elem.height = postDisplay.clientHeight;
-const ctx = elem.getContext('2d')
+let ctx = elem.getContext('2d')
 ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth, postDisplay.clientHeight);
-const data = ctx.canvas.toDataURL();
+let data = ctx.canvas.toDataURL();
+
+elem = document.createElement('canvas');
+elem.width = postDisplay.clientWidth/4;
+elem.height = postDisplay.clientHeight/4;
+ctx = elem.getContext('2d')
+ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth/4, postDisplay.clientHeight/4);
+let thumbnail = ctx.canvas.toDataURL();
+
     const responseObject={
       "text":postText.value,
       "link":postLink.value,
       "title": postTitle.value,
       "image":data,
+      "thumbnail":thumbnail,
       "content":$('div#froala-editor').froalaEditor('html.get')
     }
     console.log(responseObject)
@@ -183,8 +192,7 @@ sendhello.addEventListener('click',e=>{
 
     socket.on('newPost', data =>{
       if(typeof(data)!== 'string')return
-      console.log(data)
-      postDiv.innerHTML += data
+      postDiv.innerHTML = data + postDiv.innerHTML
     })
     socket.emit('loadPosts')
 </script>
