@@ -182,6 +182,7 @@ sendhello.addEventListener('click',e=>{
     })
 
     socket.on('newPost', data =>{
+      if(typeof(data)!== 'string')return
       console.log(data)
       postDiv.innerHTML += data
     })
