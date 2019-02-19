@@ -186,6 +186,7 @@ sendhello.addEventListener('click',e=>{
       console.log(data)
       postDiv.innerHTML += data
     })
+    socket.emit('loadPosts')
 </script>
 
 

@@ -1,4 +1,15 @@
+
+<% if(data.title){ %>
 <h2><%= data.title%></h2>
 <img src="<%= data.image%>">
 <%- data.content%>
 <p><%= data.text%></p>
+
+<% } else { %>
+
+<h2><%= data.postTitle%></h2>
+<img src="<%= data.postImage%>">
+<%- data.postContent%>
+<p><%= data.postText%></p>
+
+<% } %>
