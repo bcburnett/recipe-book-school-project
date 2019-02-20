@@ -163,12 +163,13 @@ io.on("connection", socket => {
       post.post_id = uuidv1();
       post.postText = data.text;
       post.postTitle = data.title;
-      post.postLink = data.link;
       post.postImage = data.image;
       post.thumbnail =data.thumbnail;
       post.userid =socket.handshake.session.passport.user;
       const mydata = new Post(post);
-      mydata.save().then((res, err) => console.log(err, res));
+      mydata.save()
+      post.poster ==socket.handshake.session.userinfo
+      console.log(post.poster)
       app.render("post", { 'data':post }, (err, html) => {
         if (err) {
           value = err;
