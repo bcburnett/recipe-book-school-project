@@ -1,18 +1,18 @@
+<div style="
 
-<% if(data.title){ %>
-<h2><%= data.title%></h2>
-<img src="<%= data.image%>">
-<%- data.content%>
-<p><%= data.text%></p>
-
-<% } else { %>
-
-<h2><%= data.postTitle%></h2>
-<img src="<%= data.postImage%>">
-<img src="<%= data.thumbnail%>">
-<%- data.postContent%>
+width:350px;
+ min-height:100px;
+ border: 1px solid black;
+  border-radius: 10px;
+  margin:15px;
+  padding:10px;"
+>
+<h4><%= data.postTitle%></h4>
+<div style="
+display:flex;
+flex-direction: row;
+">
+<img src="<%= data.thumbnail !=='data:,' ? data.thumbnail : ''%>" id="<%=data.post_id%>" data-user="<%= data.userid%>">
 <p><%= data.postText%></p>
-<button id="edit<%= data.post_id%>" data-postid = "<%= data.post_id%>">Edit</button>
-<button id="dele<%= data.post_id%>" data-postid="<%= data.post_id%>">Delete</button>
-
-<% } %>
+</div>
+</div>

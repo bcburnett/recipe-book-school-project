@@ -25,7 +25,7 @@ const db = require("./config/keys").MongoURI;
 
 // Connect to MongoDB
 mongoose
-  .connect("mongodb://@mumblit.com/mysocialmedia", { useNewUrlParser: true })
+  .connect("mongodb://localhost/mysocialmedia", { useNewUrlParser: true })
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
@@ -36,11 +36,19 @@ app.set("view engine", "ejs");
 // Express body parser
 app.use(express.urlencoded({ extended: true }));
 
+// const store = new MongoDBStore({
+//   uri: "mongodb://@mumblit.com",
+//   databaseName: "mysocialmedia",
+//   collection: "mySessions"
+// });
+
 const store = new MongoDBStore({
-  uri: "mongodb://@mumblit.com",
+  uri: "mongodb://localhost",
   databaseName: "mysocialmedia",
   collection: "mySessions"
 });
+
+
 console.log(store);
 
 var session = mysession({
@@ -112,7 +120,6 @@ io.on("connection", socket => {
   });
   try {
     id = socket.handshake.session.passport.user;
-    console.log(id);
     User.findById(id)
       .then(res => {
         socket.handshake.session.userinfo = res;
@@ -127,7 +134,6 @@ io.on("connection", socket => {
   socket.on("hello", data => {
     socket.emit("hello", data);
     socket.broadcast.emit("hello", data);
-    console.log(socket.handshake.session);
     lastFiveMessages.push(data);
     if (lastFiveMessages.length > 5) {
       lastFiveMessages.splice(0, 1);
@@ -151,35 +157,34 @@ io.on("connection", socket => {
   });
 
   socket.on("newPost", data => {
-    app.render("post", { data }, (err, html) => {
-      if (err) {
-        value = err;
-        socket.emit("newPost", err);
-        return;
-      }
-      socket.emit("newPost", html);
-      socket.broadcast.emit("newPost", html);
-      const messg =
-        socket.handshake.session.userinfo.name + " has Posted an article";
-      mongoose
-        .connect("mongodb://localhost:27017/mysocialmedia", {
-          useNewUrlParser: true
-        })
-        .then(() => console.log("MongoDB Connected"))
-        .catch(err => console.log(err));
-      socket.emit("hello", messg);
-      socket.broadcast.emit("hello", messg);
+    mongoose
+    .connect("mongodb://localhost:27017/mysocialmedia", {
+      useNewUrlParser: true
+    })
+    .then(() => console.log("MongoDB Connected"))
+    .catch(err => console.log(err));
       const post = {};
       post.user_id = socket.handshake.session.passport.user;
       post.post_id = uuidv1();
       post.postText = data.text;
       post.postTitle = data.title;
       post.postLink = data.link;
-      post.postContent = data.content;
       post.postImage = data.image;
       post.thumbnail =data.thumbnail;
+      post.userid =socket.handshake.session.passport.user;
       const mydata = new Post(post);
       mydata.save().then((res, err) => console.log(err, res));
+      app.render("post", { 'data':post }, (err, html) => {
+        if (err) {
+          value = err;
+          socket.emit("newPost", err);
+          return;
+        }
+        socket.emit("newPost", html);
+        socket.broadcast.emit("newPost", html);
+        const messg = socket.handshake.session.userinfo.name + " has Posted an article";
+        socket.emit("hello", messg);
+        socket.broadcast.emit("hello", messg);
     });
   });
 
@@ -190,8 +195,10 @@ io.on("connection", socket => {
       .sort({_id : 1})
       .then((res, error) => {
         res.map(e => {
-          console.log(e)
-          app.render("post", { data: e }, (err, html) => {
+          let data = e
+          data.userid =socket.handshake.session.passport.user;
+          console.log(data.userid)
+          app.render("post", { data }, (err, html) => {
             if (err) {
               value = err;
               socket.emit("newPost", err);
@@ -202,4 +209,18 @@ io.on("connection", socket => {
         });
       });
   });
+
+  socket.on('detailview',data=>{ //data is the postid
+    Post.findOne({"post_id": data}).then((res,error)=>{
+      let mydata = res
+      mydata.userid = socket.handshake.session.passport.user
+      app.render('detailview',{'data':mydata},(err,html)=>{
+        socket.emit('detailview',html)
+      })
+    })
+
+
+  })
+
+
 });

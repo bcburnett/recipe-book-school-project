@@ -31,10 +31,6 @@ thumbnail:{
   type:String,
   required: false
 },
-postContent:{
-  type:String,
-  required: false
-},
 });
 const Post = mongoose.model("Post", PostSchema);
 

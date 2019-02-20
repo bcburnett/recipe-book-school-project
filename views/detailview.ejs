@@ -1,0 +1,13 @@
+<div style="width:350px; border: 1px solid black; border-radius: 10px;margin:15px;padding:10px;"
+<h2><%= data.postTitle%></h2>
+<% if(data.postImage.length > 6 ) { %>
+<img src="<%= data.postImage%>">
+<% } %>
+
+<p><%= data.postText%></p>
+<span>:) | </span><span>:( | </span><span>***** | </span><span>views | </span>
+<% if(data.user_id === data.userid ) { %>
+<button id="edit<%= data.post_id%>" data-postid = "<%= data.post_id%>">Edit</button>
+<button id="dele<%= data.post_id%>" data-postid="<%= data.post_id%>">Delete</button>
+<% } %>
+</div>
