@@ -1,3 +1,4 @@
+
 <h1 class="mt-4">Dashboard</h1>
 <p class="lead mb-3" id="welcomeP" data-name="<%= user.name %>">
   Welcome <%= user.name %>
@@ -5,11 +6,9 @@
 
 <div
   style="
-  width:350px;
-  height:410px;
-  overflow:auto;
-  border: 1px solid black;
-  border-radius: 10px;
+  width:100%;
+  height:450px;
+  overflow: auto;
   margin:15px;
   padding:15px;
   text-align:center;
@@ -18,11 +17,11 @@
   <div
     id="chatdiv"
     style="
-width:250px;
-height:300px;
+width:100%;
+height: 300px;
 overflow:auto;
-border: 1px solid black;
-border-radius: 10px;
+border: 1px solid #cccccc;
+border-radius: 4px;
 text-align:left;
 padding:5px;
 "
@@ -32,7 +31,7 @@ padding:5px;
     <%}%>
   </div>
   <br />
-  <input type="text" id="chatInput" />
+  <input type="text" id="chatInput" style="width: 80%;" />
   <button id="sendhello">Send message</button>
 </div>
 
@@ -41,28 +40,13 @@ padding:5px;
 <div id="postFormDiv"></div>
 <!-- [a placeholder for the input modal] -->
 
-<div
-  style="
-width:500px;
-height:500px;
-overflow:auto;
-border: 1px solid black;
-border-radius: 10px;
-margin:15px;
-padding:15px;
-text-align:center;
-overflow:hidden;
-"
->
   <div
     id="postsDiv"
     style="
-width:450px;
-height:400px;
+width:100%;
+height:auto;
 overflow:auto;
-border: 1px solid black;
-border-radius: 10px;
-margin:15px auto;
+margin:5px auto;
 text-align:left;
 padding:5px;
 "
