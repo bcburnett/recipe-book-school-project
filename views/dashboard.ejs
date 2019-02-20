@@ -1,154 +1,224 @@
 <h1 class="mt-4">Dashboard</h1>
-<p class="lead mb-3" id="welcomeP" data-name="<%= user.name %>">Welcome <%= user.name %></p>
-<div id="chatdiv" >
-<% for(post of posts){ %>
-  <p><%= post %></p>
-<%}%>
+<p class="lead mb-3" id="welcomeP" data-name="<%= user.name %>">
+  Welcome <%= user.name %>
+</p>
+
+<div
+  style="
+  width:350px;
+  height:410px;
+  overflow:auto;
+  border: 1px solid black;
+  border-radius: 10px;
+  margin:15px;
+  padding:15px;
+  text-align:center;
+"
+>
+  <div
+    id="chatdiv"
+    style="
+width:250px;
+height:300px;
+overflow:auto;
+border: 1px solid black;
+border-radius: 10px;
+text-align:left;
+padding:5px;
+"
+  >
+    <% for(post of posts){ %>
+    <p><%= post %></p>
+    <%}%>
+  </div>
+  <br />
+  <input type="text" id="chatInput" />
+  <button id="sendhello">Send message</button>
 </div>
-<br>
-<input type="text" id="chatInput">
-<button id="sendhello">Send Hello</button>
-<br>
-<button id="postCreate">create post</button> <button id="cancel">cancel</button>
 
 <div id="detailView"></div>
+<!-- [a placeholder for the Display post] -->
 <div id="postFormDiv"></div>
-<div id="postsDiv"></div>
+<!-- [a placeholder for the input modal] -->
 
+<div
+  style="
+width:500px;
+height:500px;
+overflow:auto;
+border: 1px solid black;
+border-radius: 10px;
+margin:15px;
+padding:15px;
+text-align:center;
+overflow:hidden;
+"
+>
+  <div
+    id="postsDiv"
+    style="
+width:450px;
+height:400px;
+overflow:auto;
+border: 1px solid black;
+border-radius: 10px;
+margin:15px auto;
+text-align:left;
+padding:5px;
+"
+  ></div>
+  <button id="postCreate">create post</button>
+</div>
 <a href="/users/logout" class="btn btn-secondary">Logout</a>
 <script>
-
-let socket = io.connect('/')
-const sendhello = document.querySelector('#sendhello')
-const detailview = document.querySelector('#detailView')
-const welcomeP = document.querySelector('#welcomeP').getAttribute('data-name')
-const chatInput = document.querySelector('#chatInput')
-const chatDiv = document.getElementById('chatdiv')
-const postFormDiv = document.getElementById('postFormDiv')
-const postcreate = document.getElementById('postCreate').onclick=e=>socket.emit('getPostForm')
-const postDiv = document.getElementById('postsDiv')
-const cancel = document.getElementById('cancel').onclick = e=>postFormDiv.innerHTML=''
-let MODE = 'create'
-detailview.onclick=e=>{
-if(e.target.nodeName !=='BUTTON'){return}
-socket.emit(e.target.getAttribute('id').substring(0,4),e.target.dataset.postid)
-}
-postDiv.onclick=e=>{
-if(e.target.nodeName !=='IMG'){return}
-let elem = e.target
-socket.emit("detailview",elem.getAttribute('id'))
-}
-function doForm() {
-  let postid
-  if(MODE==='edit') postid = document.querySelector('#editform').getAttribute('data-id')
-  let postText = document.querySelector("#postText"),
-    postLink = document.querySelector("#postLink"),
-    postTitle = document.querySelector("#postTitle"),
-    postImage = document.querySelector("#postImage"),
-    postContent = document.querySelector("#postContent"),
-    postSubmit = document.querySelector("#postSubmit"),
-    postDisplay = document.querySelector("#postDisplay"),
-    postFormDiv = document.querySelector("#postFormDiv")
-
-  postImage.onchange = e => readURL(postImage);
-
-  postSubmit.onclick = (e)=>{
-    let data
-    let thumbnail
-    //generate reduced image
-let elem = document.createElement('canvas');
-elem.width = postDisplay.clientWidth;
-elem.height = postDisplay.clientHeight;
-let ctx = elem.getContext('2d')
-ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth, postDisplay.clientHeight);
- data = ctx.canvas.toDataURL();
-
-// generate thumbnail
-elem = document.createElement('canvas');
-elem.width = postDisplay.clientWidth/4;
-elem.height = postDisplay.clientHeight/4;
-ctx = elem.getContext('2d')
-ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth/4, postDisplay.clientHeight/4);
- thumbnail = ctx.canvas.toDataURL();
-    if(data.length<10){
-       data='cat.large.jpg'
-       thumbnail='cat.small.jpg'
+  let socket = io.connect("/");
+  const sendhello = document.querySelector("#sendhello");
+  const detailview = document.querySelector("#detailView");
+  const welcomeP = document
+    .querySelector("#welcomeP")
+    .getAttribute("data-name");
+  const chatInput = document.querySelector("#chatInput");
+  const chatDiv = document.getElementById("chatdiv");
+  const postFormDiv = document.getElementById("postFormDiv");
+  const postcreate = (document.getElementById("postCreate").onclick = e =>
+    socket.emit("getPostForm"));
+  const postDiv = document.getElementById("postsDiv");
+  let MODE = "create";
+  detailview.onclick = e => {
+    if (e.target.nodeName !== "BUTTON") {
+      return;
     }
-    let responseObject={
-      "text":postText.value,
-      "link":postLink.value,
-      "title": postTitle.value,
-      "image":data,
-      "thumbnail":thumbnail,
-      "content":$('div#froala-editor').froalaEditor('html.get'),
-      "post_id":postid
+    socket.emit(
+      e.target.getAttribute("id").substring(0, 4),
+      e.target.dataset.postid
+    );
+  };
+  postDiv.onclick = e => {
+    if (e.target.nodeName !== "IMG") {
+      return;
     }
-    if(MODE === 'edit'){
-      socket.emit("editSend",responseObject)
-          postFormDiv.innerHTML = ''
-          detailview.innerHTML=''
+    let elem = e.target;
+    socket.emit("detailview", elem.getAttribute("id"));
+  };
+  function doForm() {
+    let postid;
+    if (MODE === "edit")
+      postid = document.querySelector("#editform").getAttribute("data-id");
+    let postText = document.querySelector("#postText"),
+      postCancel = document.querySelector("#postCancel"),
+      postTitle = document.querySelector("#postTitle"),
+      postImage = document.querySelector("#postImage"),
+      postContent = document.querySelector("#postContent"),
+      postSubmit = document.querySelector("#postSubmit"),
+      postDisplay = document.querySelector("#postDisplay"),
+      postFormDiv = document.querySelector("#postFormDiv");
 
-          return
-    }
-      socket.emit("newPost",responseObject)
-          postFormDiv.innerHTML = ''
-    }
+    postCancel.onclick = e => (postFormDiv.innerHTML = "");
 
+    postImage.onchange = e => readURL(postImage);
 
+    postSubmit.onclick = e => {
+      let data;
+      let thumbnail;
+      //generate reduced image
+      let elem = document.createElement("canvas");
+      elem.width = postDisplay.clientWidth;
+      elem.height = postDisplay.clientHeight;
+      let ctx = elem.getContext("2d");
+      ctx.drawImage(
+        postDisplay,
+        0,
+        0,
+        postDisplay.clientWidth,
+        postDisplay.clientHeight
+      );
+      data = ctx.canvas.toDataURL();
 
-// read the file the user selects for the image and display it in the img tag at the large reduced size
-  function readURL(input) {
-    if (input.files && input.files[0]) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        postDisplay.setAttribute("src", e.target.result);
+      // generate thumbnail
+      elem = document.createElement("canvas");
+      elem.width = postDisplay.clientWidth / 4;
+      elem.height = postDisplay.clientHeight / 4;
+      ctx = elem.getContext("2d");
+      ctx.drawImage(
+        postDisplay,
+        0,
+        0,
+        postDisplay.clientWidth / 4,
+        postDisplay.clientHeight / 4
+      );
+      thumbnail = ctx.canvas.toDataURL();
+      if (data.length < 10) {
+        data = "https://via.placeholder.com/222/308";
+        thumbnail = "https://via.placeholder.com/56/75";
+      }
+      let responseObject = {
+        text: postText.value,
+        title: postTitle.value,
+        image: data,
+        thumbnail: thumbnail,
+        content: $("div#froala-editor").froalaEditor("html.get"),
+        post_id: postid
       };
-      reader.readAsDataURL(input.files[0]);
+      if (MODE === "edit") {
+        socket.emit("editSend", responseObject);
+        postFormDiv.innerHTML = "";
+        detailview.innerHTML = "";
+
+        return;
+      }
+      socket.emit("newPost", responseObject);
+      postFormDiv.innerHTML = "";
+    };
+
+    // read the file the user selects for the image and display it in the img tag at the large reduced size
+    function readURL(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          postDisplay.setAttribute("src", e.target.result);
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
     }
   }
-}
 
+  sendhello.addEventListener("click", e => {
+    console.log(chatInput.value);
+    const content = welcomeP + " says " + chatInput.value;
+    socket.emit("hello", content);
+  });
+  socket.on("hello", data => (chatDiv.innerHTML += `<p> ${data} </p>`));
 
+  socket.on("chat", data => (chatDiv.innerHTML += `<p> ${data} </p>`));
 
-sendhello.addEventListener('click',e=>{
-  console.log(chatInput.value)
-    const content = welcomeP + " says " + chatInput.value
-    socket.emit('hello',content)
-  })
-    socket.on('hello', data => chatDiv.innerHTML +=`<p> ${data} </p>`)
+  socket.on("sendPostForm", data => {
+    postFormDiv.innerHTML = data;
+    setTimeout(() => {
+      doForm();
+    }, 0);
+  });
 
-    socket.on('chat', data => chatDiv.innerHTML +=`<p> ${data} </p>`)
+  socket.on("detailview", data => {
+    detailview.innerHTML = data;
+  });
 
-    socket.on('sendPostForm', data =>{
-      postFormDiv.innerHTML = data
-      setTimeout(() => {
-        doForm()
-      }, 0);
-    })
+  socket.on("edit", data => {
+    postFormDiv.innerHTML = data;
+    MODE = "edit";
+    setTimeout(() => {
+      doForm();
+    }, 0);
+  });
 
-    socket.on('detailview', data=>{
-      detailview.innerHTML=data
-    })
+  socket.on("dele", () => {
+    detailview.innerHTML = "";
+    postDiv.innerHTML = "";
+    socket.emit("loadPosts");
+  });
 
-    socket.on('edit', data=>{
-      postFormDiv.innerHTML = data
-      MODE = 'edit'
-      setTimeout(() => {
-        doForm()
-      }, 0);
-    })
-
-    socket.on('dele',()=>{
-      detailview.innerHTML=''
-      postDiv.innerHTML = ''
-      socket.emit('loadPosts')
-    })
-
-    socket.on('newPost', data =>{
-      if(typeof(data)!== 'string')return
-      postDiv.innerHTML = data + postDiv.innerHTML
-    })
-    socket.emit('loadPosts')
+  socket.on("newPost", data => {
+    if (typeof data !== "string") return;
+    postDiv.innerHTML = data + postDiv.innerHTML;
+  });
+  socket.emit("loadPosts");
 </script>
-
-

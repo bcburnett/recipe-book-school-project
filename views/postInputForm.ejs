@@ -1,22 +1,23 @@
-<div class="form-group" id="editform" data-id="<%= data.post_id%>">
-  <label for="text">Message Text</label>
-  <textarea
-    type="text"
-    id="postText"
-    class="form-control"
-    placeholder="enter message text"
-  ><%= data.postText %></textarea>
-</div>
-<div class="form-group">
-  <label for="postLink">Message Link</label>
-  <input
-    type="text"
-    id="postLink"
-    class="form-control"
-    placeholder="enter message Link"
-    value="<%= data.postLink %>"
-  />
-</div>
+<div style="
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background-color: rgba(0,0,0,.75)
+">
+
+<div style="
+position:absolute;
+top:20px;
+left:50px
+">
+<style>
+  label{
+    color:#bbb;
+  }
+</style>
+
 <div class="form-group">
   <label for="postTitle">Message Title</label>
   <input
@@ -27,7 +28,19 @@
     value="<%= data.postTitle %>"
   />
 </div>
+
+<div class="form-group" id="editform" data-id="<%= data.post_id%>">
+  <label for="text">Message Text</label>
+  <textarea
+    type="text"
+    id="postText"
+    class="form-control"
+    placeholder="enter message text"
+  ><%= data.postText %></textarea>
+</div>
+
 <img src="<%= data.postImage %>" alt="" id="postDisplay" style="max-width:300px;max-height:300px">
+
 <div class="form-group">
   <label for="postImage">Message Image</label>
   <input
@@ -35,22 +48,22 @@
     accept=".png, .jpg, .bmp, .webp, .gif"
     id="postImage"
     class="form-control"
-
   />
+
+</div>
+<button id="postSubmit">Submit</button>
+<button id="postCancel">Cancel</button>
 </div>
 
-
-<button id="postSubmit">Submit</button>
-
-
-
-
+</div>
 <!--
 postText
 postLink
 postTitle
 postImage
 postDisplay
+postSubmit
+postCancel
  -->
 
 
