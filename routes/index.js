@@ -23,14 +23,9 @@ router.get('/dashboard', ensureAuthenticated, (req, res) =>{
     posts: result.lastFiveMessages
   })
 });
-console.log(req)
   req.app.io.emit('hello',req.user.name + ' Has Joined' )
 
 })
 
-router.get('/js/?file',(req,res)=>{
-  console.log(req)
-  // res.send('../js/'+req.params.file)
-})
 
 module.exports = router;

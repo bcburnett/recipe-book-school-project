@@ -12,7 +12,10 @@ width:350px;
 display:flex;
 flex-direction: row;
 ">
-<img src="<%= data.thumbnail !=='data:,' ? data.thumbnail : ''%>" id="<%=data.post_id%>" data-user="<%= data.userid%>">
+<img src="<%= data.thumbnail %>" id="<%=data.post_id%>" data-user="<%= data.userinfouserid%>" style="margin-right:10px;align-self:flex-start;">
 <p><%= data.postText%></p>
 </div>
+posted by: <%= data.poster%>
 </div>
+
+
