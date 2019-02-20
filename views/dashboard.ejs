@@ -11,6 +11,7 @@
 <br>
 <button id="postCreate">create post</button> <button id="cancel">cancel</button>
 
+<div id="detailView"></div>
 <div id="postFormDiv"></div>
 <div id="postsDiv"></div>
 
@@ -19,6 +20,7 @@
 
 let socket = io.connect('/')
 const sendhello = document.querySelector('#sendhello')
+const detailview = document.querySelector('#detailView')
 const welcomeP = document.querySelector('#welcomeP').getAttribute('data-name')
 const chatInput = document.querySelector('#chatInput')
 const chatDiv = document.getElementById('chatdiv')
@@ -26,94 +28,13 @@ const postFormDiv = document.getElementById('postFormDiv')
 const postcreate = document.getElementById('postCreate')
 const postDiv = document.getElementById('postsDiv')
 const cancel = document.getElementById('cancel').onclick = e=>postFormDiv.innerHTML=''
+postDiv.onclick=e=>{
+if(e.target.nodeName !=='IMG'){return}
+let elem = e.target
+socket.emit("detailview",elem.getAttribute('id'))
+}
 function doForm() {
 
-
-    $.FroalaEditor.DefineIcon('insertH1', {NAME: 'h1'});
-    $.FroalaEditor.RegisterCommand('insertH1', {
-      title: 'H1',
-      focus: true,
-      undo: true,
-      refreshAfterCallback: true,
-      callback: function () {
-        this.html.insert('<h1></h1>');
-        this.undo.saveStep();
-      }
-    });
-
-  $.FroalaEditor.DefineIcon('insertH2', {NAME: 'h2'});
-    $.FroalaEditor.RegisterCommand('insertH2', {
-      title: 'H2',
-      focus: true,
-      undo: true,
-      refreshAfterCallback: true,
-      callback: function () {
-        this.html.insert('<h2></h2>');
-        this.undo.saveStep();
-      }
-    });
-
-        $.FroalaEditor.DefineIcon('insertH3', {NAME: 'h3'});
-    $.FroalaEditor.RegisterCommand('insertH3', {
-      title: 'H3',
-      focus: true,
-      undo: true,
-      refreshAfterCallback: true,
-      callback: function () {
-        this.html.insert('<h3></h3>');
-        this.undo.saveStep();
-      }
-    });
-
-    $.FroalaEditor.DefineIcon('insertlist', {NAME: 'list-ul'});
-    $.FroalaEditor.RegisterCommand('insertlist', {
-      title: 'UL',
-      focus: true,
-      undo: true,
-      refreshAfterCallback: true,
-      callback: function () {
-        this.html.insert('<ul></ul>');
-        this.undo.saveStep();
-      }
-    });
-
-$.FroalaEditor.DefineIcon('insertlistol', {NAME: 'list-ol'});
-$.FroalaEditor.RegisterCommand('insertlistol', {
-  title: 'OL',
-  focus: true,
-  undo: true,
-  refreshAfterCallback: true,
-  callback: function () {
-    this.html.insert('<ol></ol>');
-    this.undo.saveStep();
-  }
-});
-
-$.FroalaEditor.DefineIcon('insertP', {NAME: 'paragraph'});
-$.FroalaEditor.RegisterCommand('insertP', {
-  title: 'P',
-  focus: true,
-  undo: true,
-  refreshAfterCallback: true,
-  callback: function () {
-    this.html.insert('<p></p>');
-    this.undo.saveStep();
-  }
-});
-    if (!$('div#froala-editor').data('froala.editor')) {
-      $('div#froala-editor').froalaEditor({
-        colors: [
-'#15E67F', '#E3DE8C', '#D8A076', '#D83762', '#76B6D8', 'REMOVE',
-'#1C7A90', '#249CB8', '#4ABED9', '#FBD75B', '#FBE571', '#FFFFFF'
-],
-toolbarButtons: [
-'undo', 'redo' , '|', 'bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript',
- 'outdent', 'indent', 'clearFormatting', 'insertTable', 'html','insertlistol','insertlist','insertH1','insertH2','insertH3','insertP'
-
-      ],
-      iconsTemplate: 'font_awesome_5'
-      });
-    }
   const postText = document.querySelector("#postText"),
     postLink = document.querySelector("#postLink"),
     postTitle = document.querySelector("#postTitle"),
@@ -125,6 +46,7 @@ toolbarButtons: [
   postImage.onchange = e => readURL(postImage);
 
   postSubmit.onclick = (e)=>{
+    //generate reduced image
 let elem = document.createElement('canvas');
 elem.width = postDisplay.clientWidth;
 elem.height = postDisplay.clientHeight;
@@ -132,6 +54,7 @@ let ctx = elem.getContext('2d')
 ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth, postDisplay.clientHeight);
 let data = ctx.canvas.toDataURL();
 
+// generate thumbnail
 elem = document.createElement('canvas');
 elem.width = postDisplay.clientWidth/4;
 elem.height = postDisplay.clientHeight/4;
@@ -147,15 +70,13 @@ let thumbnail = ctx.canvas.toDataURL();
       "thumbnail":thumbnail,
       "content":$('div#froala-editor').froalaEditor('html.get')
     }
-    console.log(responseObject)
       socket.emit("newPost",responseObject)
-      if ($('div#froala-editor').data('froala.editor')) {
-      $('div#froala-editor').froalaEditor('destroy');
+          postFormDiv.innerHTML = ''
     }
 
-    postFormDiv.innerHTML = ''
-  }
 
+
+// read the file the user selects for the image and display it in the img tag at the large reduced size
   function readURL(input) {
     if (input.files && input.files[0]) {
       var reader = new FileReader();
@@ -166,18 +87,15 @@ let thumbnail = ctx.canvas.toDataURL();
     }
   }
 }
-
 postcreate.addEventListener('click',e=>{
   socket.emit('getPostForm')
-
 })
+
 sendhello.addEventListener('click',e=>{
   console.log(chatInput.value)
     const content = welcomeP + " says " + chatInput.value
     socket.emit('hello',content)
   })
-
-
     socket.on('hello', data => chatDiv.innerHTML +=`<p> ${data} </p>`)
 
     socket.on('chat', data => chatDiv.innerHTML +=`<p> ${data} </p>`)
@@ -187,7 +105,10 @@ sendhello.addEventListener('click',e=>{
       setTimeout(() => {
         doForm()
       }, 0);
+    })
 
+    socket.on('detailview', data=>{
+      detailview.innerHTML=data
     })
 
     socket.on('newPost', data =>{
