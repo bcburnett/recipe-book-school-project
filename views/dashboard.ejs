@@ -25,17 +25,23 @@ const welcomeP = document.querySelector('#welcomeP').getAttribute('data-name')
 const chatInput = document.querySelector('#chatInput')
 const chatDiv = document.getElementById('chatdiv')
 const postFormDiv = document.getElementById('postFormDiv')
-const postcreate = document.getElementById('postCreate')
+const postcreate = document.getElementById('postCreate').onclick=e=>socket.emit('getPostForm')
 const postDiv = document.getElementById('postsDiv')
 const cancel = document.getElementById('cancel').onclick = e=>postFormDiv.innerHTML=''
+let MODE = 'create'
+detailview.onclick=e=>{
+if(e.target.nodeName !=='BUTTON'){return}
+socket.emit(e.target.getAttribute('id').substring(0,4),e.target.dataset.postid)
+}
 postDiv.onclick=e=>{
 if(e.target.nodeName !=='IMG'){return}
 let elem = e.target
 socket.emit("detailview",elem.getAttribute('id'))
 }
 function doForm() {
-
-  const postText = document.querySelector("#postText"),
+  let postid
+  if(MODE==='edit') postid = document.querySelector('#editform').getAttribute('data-id')
+  let postText = document.querySelector("#postText"),
     postLink = document.querySelector("#postLink"),
     postTitle = document.querySelector("#postTitle"),
     postImage = document.querySelector("#postImage"),
@@ -43,16 +49,19 @@ function doForm() {
     postSubmit = document.querySelector("#postSubmit"),
     postDisplay = document.querySelector("#postDisplay"),
     postFormDiv = document.querySelector("#postFormDiv")
+
   postImage.onchange = e => readURL(postImage);
 
   postSubmit.onclick = (e)=>{
+    let data
+    let thumbnail
     //generate reduced image
 let elem = document.createElement('canvas');
 elem.width = postDisplay.clientWidth;
 elem.height = postDisplay.clientHeight;
 let ctx = elem.getContext('2d')
 ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth, postDisplay.clientHeight);
-let data = ctx.canvas.toDataURL();
+ data = ctx.canvas.toDataURL();
 
 // generate thumbnail
 elem = document.createElement('canvas');
@@ -60,15 +69,26 @@ elem.width = postDisplay.clientWidth/4;
 elem.height = postDisplay.clientHeight/4;
 ctx = elem.getContext('2d')
 ctx.drawImage(postDisplay, 0, 0, postDisplay.clientWidth/4, postDisplay.clientHeight/4);
-let thumbnail = ctx.canvas.toDataURL();
-
-    const responseObject={
+ thumbnail = ctx.canvas.toDataURL();
+    if(data.length<10){
+       data='cat.large.jpg'
+       thumbnail='cat.small.jpg'
+    }
+    let responseObject={
       "text":postText.value,
       "link":postLink.value,
       "title": postTitle.value,
       "image":data,
       "thumbnail":thumbnail,
-      "content":$('div#froala-editor').froalaEditor('html.get')
+      "content":$('div#froala-editor').froalaEditor('html.get'),
+      "post_id":postid
+    }
+    if(MODE === 'edit'){
+      socket.emit("editSend",responseObject)
+          postFormDiv.innerHTML = ''
+          detailview.innerHTML=''
+
+          return
     }
       socket.emit("newPost",responseObject)
           postFormDiv.innerHTML = ''
@@ -87,9 +107,8 @@ let thumbnail = ctx.canvas.toDataURL();
     }
   }
 }
-postcreate.addEventListener('click',e=>{
-  socket.emit('getPostForm')
-})
+
+
 
 sendhello.addEventListener('click',e=>{
   console.log(chatInput.value)
@@ -109,6 +128,20 @@ sendhello.addEventListener('click',e=>{
 
     socket.on('detailview', data=>{
       detailview.innerHTML=data
+    })
+
+    socket.on('edit', data=>{
+      postFormDiv.innerHTML = data
+      MODE = 'edit'
+      setTimeout(() => {
+        doForm()
+      }, 0);
+    })
+
+    socket.on('dele',()=>{
+      detailview.innerHTML=''
+      postDiv.innerHTML = ''
+      socket.emit('loadPosts')
     })
 
     socket.on('newPost', data =>{

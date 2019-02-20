@@ -49,7 +49,7 @@ const store = new MongoDBStore({
 });
 
 
-console.log(store);
+
 
 var session = mysession({
   secret: "This is a secret",
@@ -141,7 +141,7 @@ io.on("connection", socket => {
     // save the message array
     Chat.findOne({ room: "room1" }).then((res, err) => {
       res.lastFiveMessages = lastFiveMessages;
-      res.save().then((res, err) => console.log(err, res));
+      res.save().then((res, err) => console.log());
     });
   });
 
@@ -157,12 +157,7 @@ io.on("connection", socket => {
   });
 
   socket.on("newPost", data => {
-    mongoose
-    .connect("mongodb://localhost:27017/mysocialmedia", {
-      useNewUrlParser: true
-    })
-    .then(() => console.log("MongoDB Connected"))
-    .catch(err => console.log(err));
+
       const post = {};
       post.user_id = socket.handshake.session.passport.user;
       post.post_id = uuidv1();
@@ -188,17 +183,40 @@ io.on("connection", socket => {
     });
   });
 
+  socket.on('editSend', data=>{
+    const post = {};
+      post.user_id = socket.handshake.session.passport.user;
+      post.postText = data.text;
+      post.postTitle = data.title;
+      post.postLink = data.link;
+      post.postImage = data.image;
+      post.thumbnail =data.thumbnail;
+      post.userid =socket.handshake.session.passport.user;
+      post.post_id = data.post_id
+      console.log(post)
+      var query = {'post_id':data.post_id};
+      Post.findOneAndUpdate(query, post, {upsert:true}, function(err, doc){
+          if (err) return res.send(500, { error: err });
+                  console.log(err,doc)
+        socket.emit('dele')
+      })
+  })
+
+
+
   socket.on("loadPosts", e => {
     Post.find()
       .sort({ _id: -1 })
       .limit(10)
       .sort({_id : 1})
       .then((res, error) => {
-        res.map(e => {
+        res.map( e => {
           let data = e
-          data.userid =socket.handshake.session.passport.user;
-          console.log(data.userid)
-          app.render("post", { data }, (err, html) => {
+          data.userid =socket.handshake.session.userinfo._id
+           User.findById(e.user_id,(err,res)=>{
+             data.poster=res.name
+
+            app.render("post", { data }, (err, html) => {
             if (err) {
               value = err;
               socket.emit("newPost", err);
@@ -206,6 +224,8 @@ io.on("connection", socket => {
             }
             socket.emit("newPost", html);
           });
+            })
+
         });
       });
   });
@@ -214,13 +234,25 @@ io.on("connection", socket => {
     Post.findOne({"post_id": data}).then((res,error)=>{
       let mydata = res
       mydata.userid = socket.handshake.session.passport.user
+
       app.render('detailview',{'data':mydata},(err,html)=>{
         socket.emit('detailview',html)
       })
     })
-
-
+  })
+  socket.on('dele',data=>{
+    Post.findOneAndDelete({'post_id':data}).then(()=>socket.emit('dele'))
   })
 
+  socket.on('edit',data=>{
+    Post.findOne({'post_id':data}).then((res,error)=>{
+      let mydata = res
+      mydata.userid = socket.handshake.session.passport.user
+      app.render('postInputForm',{'data':mydata},(err,html)=>{
+        socket.emit('edit',html)
+      })
+    })
+
+  })
 
 });
