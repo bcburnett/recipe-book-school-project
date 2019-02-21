@@ -15,14 +15,7 @@ postText:{
   type:String,
   required: false
 },
-postLink:{
-  type:String,
-  required: false
-},
-postTitle:{
-  type:String,
-  required: false
-},
+
 postImage:{
   type:String,
   required: false

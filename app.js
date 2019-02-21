@@ -90,6 +90,9 @@ var server = http.createServer(app);
 
 const io = socket(server);
 var sharedsession = require("express-socket.io-session");
+
+// socket routes
+
 io.use(
   sharedsession(session, {
     autoSave: true
@@ -118,6 +121,7 @@ io.on("connection", socket => {
   socket.on("disconnect", () => {
     console.info(`Client gone [id=${socket.id}]`);
   });
+
   try {
     id = socket.handshake.session.passport.user;
     User.findById(id)
@@ -142,8 +146,7 @@ io.on("connection", socket => {
     Chat.findOne({ room: "room1" }).then((res, err) => {
       res.lastFiveMessages = lastFiveMessages;
       res.save().then((res, err) => console.log());
-    });
-  });
+    })});
 
   socket.on("getPostForm", data => {
     app.render("postInputForm",{data:{}} ,(err, html) => {
@@ -153,11 +156,9 @@ io.on("connection", socket => {
         return;
       }
       socket.emit("sendPostForm", html);
-    });
-  });
+    });});
 
   socket.on("newPost", data => {
-
       const post = {};
       post.user_id = socket.handshake.session.passport.user;
       post.post_id = uuidv1();
@@ -181,8 +182,7 @@ io.on("connection", socket => {
         const messg = socket.handshake.session.userinfo.name + " has Posted an article";
         socket.emit("hello", messg);
         socket.broadcast.emit("hello", messg);
-    });
-  });
+    })});
 
   socket.on('editSend', data=>{
     const post = {};
@@ -200,12 +200,14 @@ io.on("connection", socket => {
           if (err) return res.send(500, { error: err });
                   console.log(err,doc)
         socket.emit('dele')
-      })
-  })
+      })})
 
 
 
   socket.on("loadPosts", e => {
+
+    console.log(socket.request.session)
+
     Post.find()
       .sort({ _id: -1 })
       .limit(10)
@@ -216,20 +218,15 @@ io.on("connection", socket => {
           data.userid =socket.handshake.session.userinfo._id
            User.findById(e.user_id,(err,res)=>{
              data.poster=res.name
-
             app.render("post", { data }, (err, html) => {
+
             if (err) {
               value = err;
               socket.emit("newPost", err);
-              return;
-            }
-            socket.emit("newPost", html);
-          });
-            })
+              return;}
 
-        });
-      });
-  });
+            socket.emit("newPost", html);
+          })})})})});
 
   socket.on('detailview',data=>{ //data is the postid
     Post.findOne({"post_id": data}).then((res,error)=>{
@@ -238,12 +235,14 @@ io.on("connection", socket => {
 
       app.render('detailview',{'data':mydata},(err,html)=>{
         socket.emit('detailview',html)
-      })
-    })
-  })
+      })})})
+
   socket.on('dele',data=>{
-    Post.findOneAndDelete({'post_id':data}).then(()=>socket.emit('dele'))
-  })
+    Post.findOneAndDelete({'post_id':data}).then(()=>{
+
+      socket.emit('dele')
+      socket.broadcast.emit('reload')
+    })})
 
   socket.on('edit',data=>{
     Post.findOne({'post_id':data}).then((res,error)=>{
@@ -251,9 +250,4 @@ io.on("connection", socket => {
       mydata.userid = socket.handshake.session.passport.user
       app.render('postInputForm',{'data':mydata},(err,html)=>{
         socket.emit('edit',html)
-      })
-    })
-
-  })
-
-});
+      })})})});
