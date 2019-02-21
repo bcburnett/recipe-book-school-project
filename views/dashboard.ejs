@@ -132,8 +132,8 @@ padding:5px;
       );
       thumbnail = ctx.canvas.toDataURL();
       if (data.length < 10) {
-        data = "https://via.placeholder.com/222/308";
-        thumbnail = "https://via.placeholder.com/56/75";
+        data = "default-avatar-large.jpg";
+        thumbnail = "default-avatar-small.jpg";
       }
       let responseObject = {
         text: postText.value,

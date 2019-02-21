@@ -7,6 +7,8 @@ const mysession = require("express-session");
 var MongoDBStore = require("connect-mongodb-session")(
   require("express-session")
 );
+const mydb = require ('./views/js/data')
+const DB = new mydb()
 const socket = require("socket.io");
 var http = require("http");
 var uuidv1 = require("uuid/v1");
@@ -140,10 +142,7 @@ io.on("connection", socket => {
       lastFiveMessages.splice(0, 1);
     }
     // save the message array
-    Chat.findOne({ room: "room1" }).then((res, err) => {
-      res.lastFiveMessages = lastFiveMessages;
-      res.save().then((res, err) => console.log());
-    });
+    DB.saveMessages(lastFiveMessages)
   });
 
   socket.on("getPostForm", data => {
