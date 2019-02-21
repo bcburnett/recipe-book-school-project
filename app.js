@@ -127,7 +127,6 @@ io.on("connection", socket => {
       .then(res => {
         socket.handshake.session.userinfo = res;
         socket.handshake.session.save();
-        socket.emit("hello", "session updated");
       })
       .catch(e => console.log(e));
   } catch (e) {
