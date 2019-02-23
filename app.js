@@ -1,161 +1,118 @@
-const express = require("express");
-const expressLayouts = require("express-ejs-layouts");
-const mongoose = require("mongoose");
-const passport = require("passport");
-const flash = require("connect-flash");
-const mysession = require("express-session");
-var MongoDBStore = require("connect-mongodb-session")(
-  require("express-session")
-);
-const mydb = require ('./views/js/data')
-const DB = new mydb()
-const socket = require("socket.io");
-var http = require("http");
-var uuidv1 = require("uuid/v1");
-const app = express();
-
-const User = require("./models/user");
-const Chat = require("./models/chatstate");
-const Post = require("./models/posts/postModel");
-const lastFiveMessages = [];
-
+/* eslint-disable one-var */
+// constant declarations
+const express = require('express'),
+  expressLayouts = require('express-ejs-layouts'),
+  mongoose = require('mongoose'),
+  passport = require('passport'),
+  flash = require('connect-flash'),
+  mysession = require('express-session'),
+  MongoDBStore = require('connect-mongodb-session')(require('express-session')),
+  DB= new (require('./views/js/data'))(), // Abstracted mongoose functions
+  socket = require('socket.io'),
+  http = require('http'),
+  uuidv1 = require('uuid/v1'),
+  app = express(),
+  lastFiveMessages = [];
+mongoose.set('useFindAndModify', false);
 // Passport Config
-require("./config/passport")(passport);
-
-// DB Config
-const db = require("./config/keys").MongoURI;
-
+require('./config/passport')(passport);
 // Connect to MongoDB
 mongoose
-  .connect("mongodb://localhost/mysocialmedia", { useNewUrlParser: true })
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
-
+    .connect('mongodb://localhost/mysocialmedia', {useNewUrlParser: true})
+    .then(() => console.log('MongoDB Connected'))
+    .catch((err) => console.log(err));
 // EJS
 app.use(expressLayouts);
-app.set("view engine", "ejs");
-
+app.set('view engine', 'ejs');
 // Express body parser
-app.use(express.urlencoded({ extended: true }));
-
-// const store = new MongoDBStore({
-//   uri: "mongodb://@mumblit.com",
-//   databaseName: "mysocialmedia",
-//   collection: "mySessions"
-// });
-
+app.use(express.urlencoded({extended: true}));
+// mongo store
 const store = new MongoDBStore({
-  uri: "mongodb://localhost",
-  databaseName: "mysocialmedia",
-  collection: "mySessions"
+  uri: 'mongodb://localhost',
+  databaseName: 'mysocialmedia',
+  collection: 'mySessions',
 });
-
-var session = mysession({
-  secret: "This is a secret",
+// express session
+const session = mysession({
+  secret: 'This is a secret',
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
   },
-  store: store,
+  store: store, // MongoStore
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: true,
 });
-
-// Express session
+// use Express session
 app.use(session);
-
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
-
-// Connect flash
+// Connect flash middleware
 app.use(flash());
-
 // Global variables
 app.use(function(req, res, next) {
-  res.locals.success_msg = req.flash("success_msg");
-  res.locals.error_msg = req.flash("error_msg");
-  res.locals.error = req.flash("error");
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
   next();
 });
-
 // Routes
-app.use(express.static("public"));
-app.use("/", require("./routes/index.js"));
-app.use("/users", require("./routes/users.js"));
-
-const port = process.env.PORT || 5000;
-
-var server = http.createServer(app);
-
-const io = socket(server);
-var sharedsession = require("express-socket.io-session");
-
-// socket routes
-
-io.use(
-  sharedsession(session, {
-    autoSave: true
-  })
+app.use(express.static('public'));
+app.use('/', require('./routes/index.js'));
+app.use('/users', require('./routes/users.js'));
+// S
+const port = process.env.PORT || 5000,
+  server = http.createServer(app),
+  io = socket(server);
+// share the session with socket.io
+io.use(require('express-socket.io-session')(session, {
+  autoSave: true,
+})
 );
 app.io = io;
+// Start the server
 server.listen(port);
-console.log("Port: " + port);
-console.log(app.mountpath);
-Chat.findOne({ room: "room1" })
-  .then(res => {
-    res.lastFiveMessages = [];
-    res.save();
-  })
-  .catch(e => {
-    chat = new Chat();
-    chat.room = "room1";
-    chat.lastFiveMessages = [];
-    chat.save();
-  });
-
-io.on("connection", socket => {
+// socket routes
+io.on('connection', (socket) => {
   console.info(`Client connected [id=${socket.id}]`);
 
   // when socket disconnects, remove it from the list:
-  socket.on("disconnect", () => {
+  socket.on('disconnect', () => {
     console.info(`Client gone [id=${socket.id}]`);
   });
 
-  try {
-    id = socket.handshake.session.passport.user;
-    User.findById(id)
-      .then(res => {
-        socket.handshake.session.userinfo = res;
-        socket.handshake.session.save();
-      })
-      .catch(e => console.log(e));
-  } catch (e) {
-    console.log("NO ID");
+  id = socket.handshake.session.passport.user|| false;
+  if (id) {
+    const result = DB.getUserData(id);
+    if (result) {
+      socket.handshake.session.userinfo = result;
+      socket.handshake.session.save();
+    }
   }
-
-  socket.on("hello", data => {
-    socket.emit("hello", data);
-    socket.broadcast.emit("hello", data);
+  // Socket Routes
+  socket.on('hello', (data) => {
+    socket.emit('hello', data);
+    socket.broadcast.emit('hello', data);
     lastFiveMessages.push(data);
     if (lastFiveMessages.length > 5) {
       lastFiveMessages.splice(0, 1);
     }
     // save the message array
-    DB.saveMessages(lastFiveMessages)
+    DB.saveMessages(lastFiveMessages);
   });
 
-  socket.on("getPostForm", data => {
-    app.render("postInputForm", { data: {} }, (err, html) => {
+  socket.on('getPostForm', (data) => {
+    app.render('postInputForm', {data: {}}, (err, html) => {
       if (err) {
         value = err;
-        socket.emit("sendPostForm", err);
+        socket.emit('sendPostForm', err);
         return;
       }
-      socket.emit("sendPostForm", html);
+      socket.emit('sendPostForm', html);
     });
   });
 
-  socket.on("newPost", data => {
+  socket.on('newPost', (data) => {
     const post = {};
     post.user_id = socket.handshake.session.passport.user;
     post.post_id = uuidv1();
@@ -164,26 +121,32 @@ io.on("connection", socket => {
     post.postImage = data.image;
     post.thumbnail = data.thumbnail;
     post.userid = socket.handshake.session.passport.user;
-    const mydata = new Post(post);
-    mydata.save();
-    post.poster = socket.handshake.session.userinfo.name
-    console.log( socket.handshake.session.userinfo.name);
-    app.render("post", { data: post }, (err, html) => {
+    post.poster = socket.handshake.session.userinfo.name;
+    if (!DB.verifyPost(post, socket)) {
+      console.log('ERROR something went wrong saving post');
+      return;
+    }
+    DB.savePost(post);
+    console.log(socket.handshake.session.userinfo.name);
+    app.render('post', {data: post}, (err, html) => {
       if (err) {
         value = err;
-        socket.emit("newPost", err);
+        socket.emit('newPost', err);
         return;
       }
-      socket.emit("newPost", html);
-      socket.broadcast.emit("newPost", html);
+      const res = {};
+      res.html = html;
+      res.data=post;
+      socket.emit('newPost', res);
+      socket.broadcast.emit('newPost', res);
       const messg =
-        socket.handshake.session.userinfo.name + " has Posted an article";
-      socket.emit("hello", messg);
-      socket.broadcast.emit("hello", messg);
+        socket.handshake.session.userinfo.name + ' has Posted an article';
+      socket.emit('hello', messg);
+      socket.broadcast.emit('hello', messg);
     });
   });
 
-  socket.on("editSend", data => {
+  socket.on('editSend', async (data) => {
     const post = {};
     post.user_id = socket.handshake.session.passport.user;
     post.postText = data.text;
@@ -192,66 +155,78 @@ io.on("connection", socket => {
     post.postImage = data.image;
     post.thumbnail = data.thumbnail;
     post.userid = socket.handshake.session.passport.user;
-    post.post_id = data.post_id;
-    console.log(post);
-    var query = { post_id: data.post_id };
-    Post.findOneAndUpdate(query, post, { upsert: true }, function(err, doc) {
-      if (err) return res.send(500, { error: err });
-      console.log(err, doc);
-      socket.emit("dele");
-    });
+    post.post_id = data.postid;
+    post.poster = data.poster;
+    if (!DB.verifyPost(post)) {
+      socket.emit('hello', 'Something went wrong,');
+      const res = Object.assign(post);
+      res.postImage ='';
+      res.thumbnail = '';
+      return;
+    }
+    const result = await DB.updatePost(post);
+    if (!result) {
+      socket.emit('hello', 'Something went wrong, app.js 211');
+      return;
+    }
+    socket.emit('dele');
+    socket.broadcast.emit('reload');
+    socket.broadcast.emit('hello', 'POST EDITED');
   });
 
-  socket.on("loadPosts", e => {
-    Post.find()
-      .sort({ _id: -1 })
-      .limit(10)
-      .sort({ _id: 1 })
-      .then((res, error) => {
-        res.map(e => {
-          let data = e;
-          data.userid = socket.handshake.session.userinfo._id;
-
-          data.poster = socket.handshake.session.userinfo.name;
-          app.render("post", { data }, (err, html) => {
-            if (err) {
-              value = err;
-              socket.emit("newPost", err);
-              return;
-            }
-
-            socket.emit("newPost", html);
-          });
-        });
-      });
-  });
-
-  socket.on("detailview", data => {
-    //data is the postid
-    Post.findOne({ post_id: data }).then((res, error) => {
-      let mydata = res;
-      mydata.userid = socket.handshake.session.passport.user;
-
-      app.render("detailview", { data: mydata }, (err, html) => {
-        socket.emit("detailview", html);
+  socket.on('loadPosts', async (e) => {
+    const result = await DB.getLastTenPosts();
+    result.map((e) => {
+      const data = e;
+      app.render('post', {data}, (err, html) => {
+        if (err) {
+          value = err;
+          socket.emit('hello', 'SOMETHING WENT WRONG APP.JS 228');
+          return;
+        }
+        const res = {};
+        res.html = html;
+        res.data = data;
+        socket.emit('newPost', res);
       });
     });
   });
 
-  socket.on("dele", data => {
-    Post.findOneAndDelete({ post_id: data }).then(() => {
-      socket.emit("dele");
-      socket.broadcast.emit("reload");
+  socket.on('detailview', async (data) => {
+    // data is the postid
+    const result = await DB.getPost(data);
+    if (!result) {
+      socket.emit('hello', 'Something went wrong, no post id');
+      return;
+    }
+    result.userid = socket.handshake.session.passport.user;
+    app.render('detailview', {data: result}, (err, html) => {
+      const res = {};
+      res.html = html;
+      res.data = result;
+      socket.emit('detailview', res);
     });
   });
 
-  socket.on("edit", data => {
-    Post.findOne({ post_id: data }).then((res, error) => {
-      let mydata = res;
-      mydata.userid = socket.handshake.session.passport.user;
-      app.render("postInputForm", { data: mydata }, (err, html) => {
-        socket.emit("edit", html);
-      });
+
+  socket.on('dele', (data) => {
+    const result = DB.deletePost(data);
+    if (!result) return;
+    socket.emit('dele');
+    socket.broadcast.emit('reload');
+    socket.broadcast.emit('hello', 'POST UPDATED');
+  });
+
+  socket.on('edit', async (data) => {
+    const result = await DB.getPost(data);
+    if (!result) {
+      socket.emit('hello', 'Something went wrong, no post id');
+      return;
+    }
+    result.userid = socket.handshake.session.passport.user;
+    console.log(result);
+    app.render('postInputForm', {data: result}, (err, html) => {
+      socket.emit('edit', html);
     });
   });
 });
