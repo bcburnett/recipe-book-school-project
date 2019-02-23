@@ -122,15 +122,12 @@ io.on('connection', (socket) => {
     post.postImage = data.image;
     post.thumbnail = data.thumbnail;
     post.userid = socket.handshake.session.passport.user;
-    const poster = await DB.getUserData(post.user_id);
-    post.poster = poster.name;
-    console.log(post);
+    post.poster = (await DB.getUserData(post.user_id)).name;
     if (!DB.verifyPost(post, socket)) {
       console.log('ERROR something went wrong saving post');
       return;
     }
     DB.savePost(post);
-    console.log(socket.handshake.session.userinfo.name);
     app.render('post', {data: post}, (err, html) => {
       if (err) {
         value = err;
@@ -143,7 +140,7 @@ io.on('connection', (socket) => {
       socket.emit('newPost', res);
       socket.broadcast.emit('newPost', res);
       const messg =
-        socket.handshake.session.userinfo.name + ' has Posted an article';
+        post.poster + ' has Posted an article';
       socket.emit('hello', messg);
       socket.broadcast.emit('hello', messg);
     });
@@ -212,12 +209,12 @@ io.on('connection', (socket) => {
   });
 
 
-  socket.on('dele', (data) => {
-    const result = DB.deletePost(data);
+  socket.on('dele', async (data) => {
+    const result = await DB.deletePost(data);
     if (!result) return;
     socket.emit('dele');
     socket.broadcast.emit('reload');
-    socket.broadcast.emit('hello', 'POST UPDATED');
+    socket.broadcast.emit('hello', 'POST DELETED');
   });
 
   socket.on('edit', async (data) => {

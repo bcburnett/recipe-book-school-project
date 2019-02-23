@@ -69,8 +69,11 @@ module.exports = class db {
     return thePost;
   }
 
-  async deletePost(post) {
-    return;
+  async deletePost(id) {
+    const result = await this.Post.findOneAndDelete({'post_id': id})
+        .then((res)=>res)
+        .catch((e)=>false);
+    return result;
   }
 
   async getLastTenPosts() {
