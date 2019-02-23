@@ -1,7 +1,6 @@
 /* eslint-disable one-var */
 // constant declarations
 const express = require('express'),
-  // expressLayouts = require('express-ejs-layouts'),
   mongoose = require('mongoose'),
   passport = require('passport'),
   flash = require('connect-flash'),
@@ -22,7 +21,6 @@ mongoose
     .then(() => console.log('MongoDB Connected'))
     .catch((err) => console.log(err));
 // EJS
-// app.use(expressLayouts);
 app.set('view engine', 'ejs');
 // Express body parser
 app.use(express.urlencoded({extended: true}));
