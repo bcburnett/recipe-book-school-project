@@ -84,10 +84,11 @@ io.on('connection', (socket) => {
   id = socket.handshake.session.passport.user|| false;
   if (id) {
     const result = DB.getUserData(id);
-    if (result) {
-      socket.handshake.session.userinfo = result;
-      socket.handshake.session.save();
+    if (!result) {
+      return;
     }
+    socket.handshake.session.userinfo = result;
+    socket.handshake.session.save();
   }
   // Socket Routes
   socket.on('hello', (data) => {
@@ -112,7 +113,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('newPost', (data) => {
+  socket.on('newPost', async (data) => {
     const post = {};
     post.user_id = socket.handshake.session.passport.user;
     post.post_id = uuidv1();
@@ -121,7 +122,9 @@ io.on('connection', (socket) => {
     post.postImage = data.image;
     post.thumbnail = data.thumbnail;
     post.userid = socket.handshake.session.passport.user;
-    post.poster = socket.handshake.session.userinfo.name;
+    const poster = await DB.getUserData(post.user_id);
+    post.poster = poster.name;
+    console.log(post);
     if (!DB.verifyPost(post, socket)) {
       console.log('ERROR something went wrong saving post');
       return;

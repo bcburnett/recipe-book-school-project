@@ -73,6 +73,7 @@
         image: data,
         thumbnail: thumbnail,
       };
+      console.log(STORE.MODE)
       if (STORE.MODE === "edit") {
         socket.emit("editSend", responseObject);
         postFormDiv.innerHTML = "";
